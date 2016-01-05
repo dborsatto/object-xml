@@ -96,7 +96,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return Node A new Node instance
      */
-    public function create($name = '')
+    static public function create($name = '')
     {
         return new self($name);
     }
@@ -295,7 +295,7 @@ class Node implements \ArrayAccess, \Iterator
     public function getChildrenByName($name)
     {
         return $this->filterChildren(function (Node $node) use ($name) {
-            return $node->getName() == $name;
+            return $node->getName() === $name;
         });
     }
 
@@ -310,7 +310,7 @@ class Node implements \ArrayAccess, \Iterator
     {
         $children = $this->getChildrenByName($name);
 
-        return count($children) == 0 ? null : $children[0];
+        return count($children) === 0 ? null : $children[0];
     }
 
     /**
@@ -599,7 +599,7 @@ class Node implements \ArrayAccess, \Iterator
     public function __unset($name)
     {
         $this->children = $this->filterChildren(function (Node $node) use ($name) {
-            return $node->getName() != $name;
+            return $node->getName() !== $name;
         });
     }
 }

@@ -64,7 +64,7 @@ class Manager
         $stack[1] = $root;
 
         foreach ($xmlValues as $element) {
-            if ($element['type'] == 'close') {
+            if ($element['type'] === 'close') {
                 continue;
             }
             $node = new Node();
@@ -223,7 +223,7 @@ class Manager
      */
     public function toTree(Node $node, $currentIndentation = 0)
     {
-        if ($currentIndentation == 0) {
+        if ($currentIndentation === 0) {
             $tree = $node->getName()."\n";
         } else {
             $tree = str_pad('', $currentIndentation, '-', STR_PAD_LEFT).' '.$node->getName()."\n";

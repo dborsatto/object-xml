@@ -2,8 +2,8 @@
 
 namespace DBorsatto\ObjectXml\Test;
 
-use DBorsatto\ObjectXml\Node;
 use DBorsatto\ObjectXml\Manager;
+use DBorsatto\ObjectXml\Node;
 
 class ManagerTest extends \PHPUnit_Framework_TestCase
 {
