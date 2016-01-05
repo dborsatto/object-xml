@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node>
+  <child1 />
+  <child2></child2>
+  <child3>child3-value</child3>
+  <child4><![CDATA[]]></child4>
+</node>

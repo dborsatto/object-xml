@@ -1,0 +1,22 @@
+{
+    "name": "dborsatto/object-xml",
+    "description": "ObjectXml is a PHP library that enables a modern object-oriented approach to XML handling.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Davide Borsatto",
+            "email": "davide.borsatto@gmail.com",
+            "homepage": "https://github.com/dborsatto"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^5.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "DBorsatto\\ObjectXml\\Test\\": "tests",
+            "DBorsatto\\ObjectXml\\": "src"
+        }
+    }
+}
