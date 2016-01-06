@@ -13,6 +13,8 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $manager = new Manager();
         $node = $manager->parseFile($filePath);
         $this->assertEquals($manager->toString($node, true, true), file_get_contents($filePath));
+        $expectedArray = include __DIR__.'/Resources/output-array.php';
+        $this->assertEquals($expectedArray, $manager->toArray($node));
 
         $manager->setIndentationSpaces(2);
         $this->assertEquals($manager->getIndentationSpaces(), 2);

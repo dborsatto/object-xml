@@ -235,4 +235,23 @@ class Manager
 
         return $tree;
     }
+
+    /**
+     * Returns an array representation of the given Node structure.
+     *
+     * @param Node $node
+     *
+     * @return array
+     */
+    public function toArray(Node $node)
+    {
+        return array(
+            'name'=> $node->getName(),
+            'value' => $node->getValue(),
+            'attributes' => $node->getAttributes(),
+            'children' => array_map(function (Node $child) {
+                return $this->toArray($child);
+            }, $node->getChildren()),
+        );
+    }
 }
