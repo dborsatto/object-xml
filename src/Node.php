@@ -207,11 +207,8 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return Node The current Node instance, for fluent use
      */
-    public function setAttributes($attributes, $overwrite = true)
+    public function setAttributes(array $attributes, $overwrite = true)
     {
-        if (!is_array($attributes)) {
-            throw new \InvalidArgumentException('Invalid argument provided as attributes for Node');
-        }
         $this->attributes = $overwrite ? $attributes : array_merge($this->attributes, $attributes);
 
         return $this;
@@ -352,14 +349,9 @@ class Node implements \ArrayAccess, \Iterator
      */
     public function addChildren(array $nodes)
     {
-        foreach ($nodes as $node) {
-            if ($node instanceof self) {
-                $this->addChild($node);
-            } else {
-                throw new \InvalidArgumentException(
-                    sprintf('A child of %s can only be an instance of Node, %s given', $this->getName(), gettype($node)));
-            }
-        }
+        array_map(function (Node $child) {
+            $this->addChild($child);
+        }, $nodes);
 
         return $this;
     }
@@ -371,9 +363,10 @@ class Node implements \ArrayAccess, \Iterator
      */
     public function clearChildren()
     {
-        foreach ($this->children as $child) {
+        array_map(function (Node $child) {
             $child->setParent(null);
-        }
+        }, $this->getChildren());
+
         $this->children = array();
 
         return $this;

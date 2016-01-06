@@ -54,8 +54,6 @@ class Manager
      */
     private function xmlToObject($data)
     {
-        $xmlValues = $this->parseIntoStruct($data);
-
         $root = new Node();
         $root->setName('root');
         $actualLevel = 1;
@@ -63,18 +61,21 @@ class Manager
         $stack = array();
         $stack[1] = $root;
 
-        foreach ($xmlValues as $element) {
+        foreach ($this->parseIntoStruct($data) as $element) {
             if ($element['type'] === 'close') {
                 continue;
             }
+
             $node = new Node();
             $node->setName($element['tag']);
+
             if (isset($element['attributes'])) {
                 $node->setAttributes($element['attributes']);
             }
             if (isset($element['value'])) {
                 $node->setValue($element['value']);
             }
+
             $level = $element['level'];
             if ($level > $actualLevel) {
                 $stack[$level] = $actualNode;
@@ -147,10 +148,7 @@ class Manager
      */
     public function toString(Node $node, $header = true, $forceCdata = false)
     {
-        $xml = '';
-        if ($header) {
-            $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
-        }
+        $xml = $header ? '<?xml version="1.0" encoding="UTF-8"?>'."\n" : '';
 
         return $xml.$this->toStringRecursive($node, 0, $forceCdata);
     }

@@ -95,22 +95,4 @@ class NodeTest extends \PHPUnit_Framework_TestCase
         unset($node->second);
         $this->assertEquals($node->getChildren(), array($child));
     }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testInvalidAttributes()
-    {
-        $node = Node::create();
-        $node->setAttributes('invalid attributes');
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testInvalidChildren()
-    {
-        $node = Node::create();
-        $node->addChildren(array('invalid attributes'));
-    }
 }
