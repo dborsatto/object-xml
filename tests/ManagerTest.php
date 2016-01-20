@@ -12,7 +12,7 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
         $filePath = __DIR__.'/Resources/input-example.xml';
         $manager = new Manager();
         $node = $manager->parseFile($filePath);
-        $this->assertEquals($manager->toString($node, true, true), file_get_contents($filePath));
+        $this->assertEquals($manager->toString($node, true), file_get_contents($filePath));
         $expectedArray = include __DIR__.'/Resources/output-array.php';
         $this->assertEquals($expectedArray, $manager->toArray($node));
 

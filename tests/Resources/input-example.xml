@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <note to="John" from="Jane">
-    <subject><![CDATA[Reminder]]></subject>
-    <body><![CDATA[Don't forget me this weekend!]]></body>
+  <subject><![CDATA[Reminder]]></subject>
+  <body><![CDATA[Don't forget me this weekend!]]></body>
 </note>

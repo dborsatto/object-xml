@@ -141,74 +141,67 @@ class Manager
      * Returns the XML rappresentation of the given Node with its children.
      *
      * @param Node $node       The Node to be converted to string
-     * @param bool $header     Whether to add the XML header
      * @param bool $forceCdata Whether the XML content will be enclosed within CDATA tags
      *
      * @return string The XML representation
      */
-    public function toString(Node $node, $header = true, $forceCdata = false)
+    public function toString(Node $node, $forceCdata = false)
     {
-        $xml = $header ? '<?xml version="1.0" encoding="UTF-8"?>'."\n" : '';
+        $document = new \DOMDocument('1.0', 'UTF-8');
+        $root = $this->createDomStructure($document, $node, $forceCdata);
+        $document->appendChild($root);
+        $document->formatOutput = true;
 
-        return $xml.$this->toStringRecursive($node, 0, $forceCdata);
+        return $document->saveXML();
     }
 
     /**
-     * Returns the XML rappresentation of the Node.
+     * Returns the DOM representation of the Node.
      *
-     * @param Node $node               The Node to be converted to string
-     * @param int  $currentIndentation The current indentation level
-     * @param bool $forceCdata         Whether the XML content will be enclosed within CDATA tags
+     * @param \DOMDocument $document   The global document object
+     * @param Node         $node       The Node to be converted to string
+     * @param bool         $forceCdata Whether the XML content will be enclosed within CDATA tags
      *
-     * @return string The XML rappresentation of the Node
+     * @return \DOMElement The DOM rappresentation of the Node
      */
-    private function toStringRecursive(Node $node, $currentIndentation, $forceCdata)
+    private function createDomStructure(\DOMDocument $document, Node $node, $forceCdata)
     {
         if (!$node->getName()) {
             throw new \RuntimeException('Can not create an XML representation of a Node without a name');
         }
 
-        $xml = str_pad('', $currentIndentation, ' ', STR_PAD_LEFT);
+        $element = $document->createElement($node->getName());
 
-        $xml .= '<'.$node->getName();
         foreach ($node->getAttributes() as $key => $value) {
-            $xml .= ' '.$key.'="'.$value.'"';
+            $attribute = $document->createAttribute($key);
+            $attribute->value = $value;
+            $element->appendChild($attribute);
         }
 
         if (!$node->hasChildren()) {
             // The Node has no children, so only content needs to be displayed
             if ($node->getValue()) {
                 // The Node has content to be displayed
-                $xml .= '>';
                 if ($node->getUseCdata() or $forceCdata) {
-                    $xml .= '<![CDATA['.$node->getValue().']]>';
+                    $content = $document->createCDATASection($node->getValue());
                 } else {
-                    $xml .= $node->getValue();
+                    $content = $document->createTextNode($node->getValue());
                 }
-                $xml .= '</'.$node->getName().'>';
-            } elseif ($node->getUseShortTag()) {
-                // The Node has no content in it, and short-tag is enabled
-                $xml .= ' />';
+                $element->appendChild($content);
             } else {
                 // The Node has no content, and short-tag is not enabled
-                $xml .= '>';
                 if ($node->getUseCdata() or $forceCdata) {
-                    $xml .= '<![CDATA[]]>';
+                    $element->appendChild($document->createCDATASection($node->getValue()));
                 }
-                $xml .= '</'.$node->getName().'>';
             }
         } else {
             // The Node has children, so they must be displayed before closing the XML tag
-            $xml .= '>'."\n";
-
             foreach ($node->getChildren() as $child) {
-                $xml .= $this->toStringRecursive($child, $currentIndentation + $this->getIndentationSpaces(), $forceCdata);
+                $element->appendChild($this->createDomStructure($document, $child, $forceCdata));
             }
-
-            $xml .= str_pad('', $currentIndentation, ' ', STR_PAD_LEFT).'</'.$node->getName().'>';
         }
 
-        return $xml."\n";
+        return $element;
     }
 
     /**
