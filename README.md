@@ -15,6 +15,14 @@ $ composer require dborsatto/object-xml
 
 ## Usage
 ```php
+use DBorsatto\ObjectXml\Manager;
+use DBorsatto\ObjectXml\Node;
+
+$manager = new Manager();
+$node = $manager->parseFile('file.xml');
+
+$node = Node::create('root');
+
 ```
 
 ## License

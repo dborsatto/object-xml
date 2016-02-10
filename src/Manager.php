@@ -182,7 +182,7 @@ class Manager
             // The Node has no children, so only content needs to be displayed
             if ($node->getValue()) {
                 // The Node has content to be displayed
-                if ($node->getUseCdata() or $forceCdata) {
+                if ($node->getUseCdata() || $forceCdata) {
                     $content = $document->createCDATASection($node->getValue());
                 } else {
                     $content = $document->createTextNode($node->getValue());
@@ -190,7 +190,7 @@ class Manager
                 $element->appendChild($content);
             } else {
                 // The Node has no content, and short-tag is not enabled
-                if ($node->getUseCdata() or $forceCdata) {
+                if ($node->getUseCdata() || $forceCdata) {
                     $element->appendChild($document->createCDATASection($node->getValue()));
                 }
             }
