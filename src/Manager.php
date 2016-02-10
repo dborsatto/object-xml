@@ -237,7 +237,7 @@ class Manager
     public function toArray(Node $node)
     {
         return array(
-            'name'=> $node->getName(),
+            'name' => $node->getName(),
             'value' => $node->getValue(),
             'attributes' => $node->getAttributes(),
             'children' => array_map(function (Node $child) {

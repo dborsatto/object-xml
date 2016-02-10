@@ -96,7 +96,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return Node A new Node instance
      */
-    static public function create($name = '')
+    public static function create($name = '')
     {
         return new self($name);
     }
