@@ -9,13 +9,15 @@
             "homepage": "https://github.com/dborsatto"
         }
     ],
-    "require": {},
+    "require": {
+        "php": "^7.1"
+    },
     "require-dev": {
-        "phpunit/phpunit": "^4.8"
+        "phpunit/phpunit": "^7.0"
     },
     "autoload": {
         "psr-4": {
-            "DBorsatto\\ObjectXml\\Test\\": "tests",
+            "DBorsatto\\ObjectXml\\Tests\\": "tests",
             "DBorsatto\\ObjectXml\\": "src"
         }
     }

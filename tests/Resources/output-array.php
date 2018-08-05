@@ -1,28 +1,30 @@
 <?php
 
-return array(
+/**
+ * This file is part of the dborsatto/object-xml package.
+ *
+ * @license   MIT
+ */
+
+return [
     'name' => 'note',
     'value' => '',
-    'attributes' => array(
+    'attributes' => [
         'to' => 'John',
         'from' => 'Jane',
-    ),
-    'children' => array(
-        0 => array(
+    ],
+    'children' => [
+        0 => [
             'name' => 'subject',
             'value' => 'Reminder',
-            'attributes' => array(
-            ),
-            'children' => array(
-            ),
-        ),
-        1 => array(
+            'attributes' => [],
+            'children' => [],
+        ],
+        1 => [
             'name' => 'body',
             'value' => 'Don\'t forget me this weekend!',
-            'attributes' => array(
-            ),
-            'children' => array(
-            ),
-        ),
-    ),
-);
+            'attributes' => [],
+            'children' => [],
+        ],
+    ],
+];

@@ -1,14 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
+/**
+ * This file is part of the dborsatto/object-xml package.
+ *
+ * @license   MIT
+ */
+
 namespace DBorsatto\ObjectXml;
 
 /**
  * Node class
  * This class is a representation of a XML node.
- *
- * @author Davide Borsatto <davide.borsatto@gmail.com>
  */
-class Node implements \ArrayAccess, \Iterator
+class Node implements \ArrayAccess, \IteratorAggregate
 {
     /**
      * The name of the node.
@@ -29,21 +35,21 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @var array
      */
-    protected $attributes = array();
+    protected $attributes = [];
 
     /**
      * The parent (if exists) of this node.
      *
      * @var Node|null
      */
-    protected $parent = null;
+    protected $parent;
 
     /**
      * The children nodes.
      *
-     * @var Node[]
+     * @var NodeCollection
      */
-    protected $children = array();
+    protected $children;
 
     /**
      * If the node must print the cdata string while converted to XML.
@@ -60,32 +66,26 @@ class Node implements \ArrayAccess, \Iterator
     protected $useShortTag = true;
 
     /**
-     * The current index of the iterator (need by the Iterator interface).
-     *
-     * @var int
-     */
-    private $iteratorPosition = 0;
-
-    /**
      * The default options of the node.
      *
      * @var array
      */
-    protected static $defaultOptions = array(
+    protected static $defaultOptions = [
         'value' => '',
-        'attributes' => array(),
+        'attributes' => [],
         'parent' => null,
         'use_cdata' => false,
         'use_short_tag' => true,
-    );
+    ];
 
     /**
-     * Contructor, it can set up the name and some options.
+     * Node constructor.
      *
      * @param string $name
      */
-    public function __construct($name = '')
+    public function __construct(string $name = '')
     {
+        $this->children = new NodeCollection();
         $this->setName($name);
     }
 
@@ -96,7 +96,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return Node A new Node instance
      */
-    public static function create($name = '')
+    public static function create(string $name = ''): self
     {
         return new self($name);
     }
@@ -106,9 +106,9 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param string $name
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function setName($name)
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -120,7 +120,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -130,9 +130,9 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param string $value
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function setValue($value)
+    public function setValue(string $value): self
     {
         $this->value = $value;
 
@@ -144,7 +144,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return string
      */
-    public function getValue()
+    public function getValue(): string
     {
         return $this->value;
     }
@@ -152,13 +152,13 @@ class Node implements \ArrayAccess, \Iterator
     /**
      * Returns if the node has an attribute or not.
      *
-     * @param mixed $name
+     * @param string $name
      *
      * @return bool
      */
-    public function hasAttribute($name)
+    public function hasAttribute(string $name): bool
     {
-        return array_key_exists($name, $this->attributes);
+        return \array_key_exists($name, $this->attributes);
     }
 
     /**
@@ -169,7 +169,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return string|number
      */
-    public function getAttribute($name, $default = null)
+    public function getAttribute(string $name, string $default = null)
     {
         return $this->hasAttribute($name) ? $this->attributes[$name] : $default;
     }
@@ -179,7 +179,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return array
      */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
@@ -190,9 +190,9 @@ class Node implements \ArrayAccess, \Iterator
      * @param string $name
      * @param string $value
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function setAttribute($name, $value)
+    public function setAttribute(string $name, string $value): self
     {
         $this->attributes[$name] = $value;
 
@@ -205,11 +205,11 @@ class Node implements \ArrayAccess, \Iterator
      * @param array $attributes An array with new attributes if key => value form
      * @param bool  $overwrite  Whether to overwrite or merge the previous attributes
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function setAttributes(array $attributes, $overwrite = true)
+    public function setAttributes(array $attributes, bool $overwrite = true): self
     {
-        $this->attributes = $overwrite ? $attributes : array_merge($this->attributes, $attributes);
+        $this->attributes = $overwrite ? $attributes : \array_merge($this->attributes, $attributes);
 
         return $this;
     }
@@ -219,9 +219,9 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param string $name
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function removeAttribute($name)
+    public function removeAttribute(string $name): self
     {
         unset($this->attributes[$name]);
 
@@ -231,9 +231,9 @@ class Node implements \ArrayAccess, \Iterator
     /**
      * Returns the parent (if exists) of the current node.
      *
-     * @return mixed
+     * @return self|null
      */
-    public function getParent()
+    public function getParent(): ?self
     {
         return $this->parent;
     }
@@ -241,9 +241,11 @@ class Node implements \ArrayAccess, \Iterator
     /**
      * Sets the parent of the current node.
      *
-     * @param Node $parent
+     * @param self|null $parent
+     *
+     * @return self
      */
-    public function setParent(Node $parent = null)
+    public function setParent(?self $parent): self
     {
         $this->parent = $parent;
 
@@ -255,17 +257,17 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return bool
      */
-    public function hasChildren()
+    public function hasChildren(): bool
     {
-        return count($this->children) > 0;
+        return (bool) \count($this->children);
     }
 
     /**
      * Returns the children of the current node.
      *
-     * @return Node[]
+     * @return NodeCollection
      */
-    public function getChildren()
+    public function getChildren(): NodeCollection
     {
         return $this->children;
     }
@@ -273,13 +275,13 @@ class Node implements \ArrayAccess, \Iterator
     /**
      * Returns an array of filtered children.
      *
-     * @param Closure $filter
+     * @param \Closure $filter
      *
-     * @return Node[]
+     * @return NodeCollection
      */
-    public function filterChildren(\Closure $filter)
+    public function filterChildren(\Closure $filter): NodeCollection
     {
-        return array_values(array_filter($this->children, $filter));
+        return $this->children->filter($filter);
     }
 
     /**
@@ -287,11 +289,11 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param string $name
      *
-     * @return Node[]
+     * @return NodeCollection
      */
-    public function getChildrenByName($name)
+    public function getChildrenByName(string $name): NodeCollection
     {
-        return $this->filterChildren(function (Node $node) use ($name) {
+        return $this->children->filter(function (self $node) use ($name): bool {
             return $node->getName() === $name;
         });
     }
@@ -301,24 +303,22 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param string $name
      *
-     * @return Node|null
+     * @return self|null
      */
-    public function getChildByName($name)
+    public function getChildByName(string $name): ?self
     {
-        $children = $this->getChildrenByName($name);
-
-        return count($children) === 0 ? null : $children[0];
+        return $this->getChildrenByName($name)->first();
     }
 
     /**
      * Returns an key => value representation of the Node's children.
      *
-     * @return array
+     * @return string[]
      */
-    public function getChildrenAsArray()
+    public function getChildrenAsArray(): array
     {
-        $values = array();
-        foreach ($this->getChildren() as $child) {
+        $values = [];
+        foreach ($this->children as $child) {
             $values[$child->getName()] = $child->getValue();
         }
 
@@ -328,14 +328,14 @@ class Node implements \ArrayAccess, \Iterator
     /**
      * Adds a child to the current node.
      *
-     * @param Node $node The child to add
+     * @param self $node The child to add
      *
-     * @return Node The current Node instance, for fluent use
+     * @return self
      */
-    public function addChild(Node $node)
+    public function addChild(self $node): self
     {
-        $node->setParent($this);
-        $this->children[] = $node;
+        $node->setParent(null); // @TODO
+        $this->children->addNode($node);
 
         return $this;
     }
@@ -343,13 +343,13 @@ class Node implements \ArrayAccess, \Iterator
     /**
      * Adds an array of Node nodes.
      *
-     * @param Node[] $nodes An array of Node instances
+     * @param self[] $nodes An array of Node instances
      *
-     * @return Node The current Node instance, for fluent use
+     * @return self
      */
-    public function addChildren(array $nodes)
+    public function addChildren(array $nodes): self
     {
-        array_map(function (Node $child) {
+        \array_map(function (self $child): void {
             $this->addChild($child);
         }, $nodes);
 
@@ -359,15 +359,15 @@ class Node implements \ArrayAccess, \Iterator
     /**
      * Removes all the children of the current node.
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function clearChildren()
+    public function clearChildren(): self
     {
-        array_map(function (Node $child) {
+        \array_map(function (self $child): void {
             $child->setParent(null);
-        }, $this->getChildren());
+        }, $this->getChildren()->getNodes());
 
-        $this->children = array();
+        $this->children = new NodeCollection();
 
         return $this;
     }
@@ -377,9 +377,9 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param bool $useCdata
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function setUseCdata($useCdata)
+    public function setUseCdata(bool $useCdata): self
     {
         $this->useCdata = (bool) $useCdata;
 
@@ -391,7 +391,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return bool
      */
-    public function getUseCdata()
+    public function getUseCdata(): bool
     {
         return $this->useCdata;
     }
@@ -401,9 +401,9 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param bool $useShortTag
      *
-     * @return Node The current Node instance, for fluent use
+     * @return Node
      */
-    public function setUseShortTag($useShortTag)
+    public function setUseShortTag(bool $useShortTag): self
     {
         $this->useShortTag = (bool) $useShortTag;
 
@@ -415,7 +415,7 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return bool
      */
-    public function getUseShortTag()
+    public function getUseShortTag(): bool
     {
         return $this->useShortTag;
     }
@@ -425,11 +425,11 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @param array $options
      *
-     * @return Node The current Node instance, for fluent use
+     * @return self
      */
-    public function setOptions(array $options)
+    public function setOptions(array $options): self
     {
-        $options = array_merge(self::$defaultOptions, $options);
+        $options = \array_merge(self::$defaultOptions, $options);
 
         return $this
             ->setValue($options['value'])
@@ -444,61 +444,23 @@ class Node implements \ArrayAccess, \Iterator
      *
      * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
-        return array(
+        return [
             'value' => $this->value,
             'attributes' => $this->attributes,
             'parent' => $this->parent,
             'use_cdata' => $this->useCdata,
             'use_short_tag' => $this->useShortTag,
-        );
+        ];
     }
 
     /**
-     * Returns the current child, needed by the iterator interface.
-     *
-     * @return mixed
+     * {@inheritdoc}
      */
-    public function current()
+    public function getIterator()
     {
-        return $this->valid() ? $this->children[$this->iteratorPosition] : null;
-    }
-
-    /**
-     * Returns the currents index of the iterator, needed by the iterator interface.
-     *
-     * @return int
-     */
-    public function key()
-    {
-        return $this->iteratorPosition;
-    }
-
-    /**
-     * Increases the index of the iterator, needed by the iterator interface.
-     */
-    public function next()
-    {
-        ++$this->iteratorPosition;
-    }
-
-    /**
-     * Rewinds the index of the iterator, needed by the iterator interface.
-     */
-    public function rewind()
-    {
-        $this->iteratorPosition = 0;
-    }
-
-    /**
-     * Tells whether the selected child exists or not, needed by the iterator interface.
-     *
-     * @return bool
-     */
-    public function valid()
-    {
-        return isset($this->children[$this->iteratorPosition]);
+        return $this->children->getIterator();
     }
 
     /**
@@ -517,7 +479,6 @@ class Node implements \ArrayAccess, \Iterator
      * Returns the request attribute of the node.
      *
      * @param string $name
-     * @param string $default
      *
      * @return string
      */
@@ -556,19 +517,19 @@ class Node implements \ArrayAccess, \Iterator
      */
     public function __isset($name)
     {
-        return count($this->getChildrenByName($name)) > 0;
+        return \count($this->getChildrenByName($name)) > 0;
     }
 
     /**
-     * Returns the first child with the selected name.
+     * Returns the children with the selected name.
      *
      * @param string $name
      *
-     * @return mixed
+     * @return NodeCollection
      */
     public function __get($name)
     {
-        return $this->getChildByName($name);
+        return $this->getChildrenByName($name);
     }
 
     /**
@@ -579,19 +540,19 @@ class Node implements \ArrayAccess, \Iterator
      */
     public function __set($name, $node)
     {
-        if ($node instanceof static) {
-            $this->addChild($node->setName($name));
+        if ($node instanceof self) {
+            $this->children->addNode($node->setName($name));
         }
     }
 
     /**
-     * Removes the first child.
+     * Removes the children with the given name.
      *
-     * @param string
+     * @param string $name
      */
     public function __unset($name)
     {
-        $this->children = $this->filterChildren(function (Node $node) use ($name) {
+        $this->children = $this->children->filter(function (Node $node) use ($name): bool {
             return $node->getName() !== $name;
         });
     }

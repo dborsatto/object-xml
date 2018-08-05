@@ -1,98 +1,106 @@
 <?php
 
-namespace DBorsatto\ObjectXml\Test;
+declare(strict_types=1);
+
+/**
+ * This file is part of the dborsatto/object-xml package.
+ *
+ * @license   MIT
+ */
+
+namespace DBorsatto\ObjectXml\Tests;
 
 use DBorsatto\ObjectXml\Node;
+use PHPUnit\Framework\TestCase;
 
-class NodeTest extends \PHPUnit_Framework_TestCase
+class NodeTest extends TestCase
 {
     public function testProperties()
     {
-        $node = Node::create();
+        $node = new Node();
 
         $node->setName('test-name');
-        $this->assertEquals($node->getName(), 'test-name');
+        $this->assertSame($node->getName(), 'test-name');
 
         $node->setValue('test-value');
-        $this->assertEquals($node->getValue(), 'test-value');
+        $this->assertSame($node->getValue(), 'test-value');
 
-        $node->setAttributes(array(
+        $node->setAttributes([
             'test-attribute1' => 'aaa',
             'test-attribute2' => 'bbb',
-        ));
-        $this->assertEquals($node->hasAttribute('test-attribute1'), true);
-        $this->assertEquals(isset($node['test-attribute1']), true);
+        ]);
+        $this->assertSame($node->hasAttribute('test-attribute1'), true);
+        $this->assertSame(isset($node['test-attribute1']), true);
 
-        $this->assertEquals($node->hasAttribute('test-attribute3'), false);
+        $this->assertSame($node->hasAttribute('test-attribute3'), false);
         $node->setAttribute('test-attribute3', 'ccc');
-        $this->assertEquals($node->hasAttribute('test-attribute3'), true);
+        $this->assertSame($node->hasAttribute('test-attribute3'), true);
         $node->removeAttribute('test-attribute3');
-        $this->assertEquals($node->hasAttribute('test-attribute3'), false);
+        $this->assertSame($node->hasAttribute('test-attribute3'), false);
 
-        $this->assertEquals($node->getAttribute('test-attribute1'), 'aaa');
-        $this->assertEquals($node['test-attribute1'], 'aaa');
-        $this->assertEquals($node->getAttribute('test-attribute4', 'ddd'), 'ddd');
+        $this->assertSame($node->getAttribute('test-attribute1'), 'aaa');
+        $this->assertSame($node['test-attribute1'], 'aaa');
+        $this->assertSame($node->getAttribute('test-attribute4', 'ddd'), 'ddd');
 
         $node['test-attribute5'] = 'eee';
-        $this->assertEquals($node->getAttributes(), array(
+        $this->assertSame($node->getAttributes(), [
             'test-attribute1' => 'aaa',
             'test-attribute2' => 'bbb',
             'test-attribute5' => 'eee',
-        ));
+        ]);
         unset($node['test-attribute5']);
-        $this->assertEquals($node->hasAttribute('test-attribute5'), false);
+        $this->assertSame($node->hasAttribute('test-attribute5'), false);
 
-        $parent = Node::create();
+        $parent = new Node();
         $node->setParent($parent);
-        $this->assertEquals($node->getParent(), $parent);
+        $this->assertSame($node->getParent(), $parent);
 
-        $this->assertEquals($node->hasChildren(), false);
-        $child = Node::create('child')->setValue('child-value');
+        $this->assertSame($node->hasChildren(), false);
+        $child = (new Node('child'))
+                ->setValue('child-value');
         $node->addChild($child);
-        $this->assertEquals($node->hasChildren(), true);
+        $this->assertSame($node->hasChildren(), true);
 
-        $this->assertEquals(count($node->getChildren()), 1);
+        $this->assertSame(\count($node->getChildren()), 1);
 
-        $this->assertEquals($child, $node->getChildByName('child'));
-        $this->assertEquals($child, $node->child);
+        $this->assertSame($child, $node->getChildByName('child'));
+        $this->assertSame($child, $node->child);
 
-        $this->assertEquals($node->getChildrenAsArray(), array(
+        $this->assertSame($node->getChildrenAsArray(), [
             'child' => 'child-value',
-        ));
+        ]);
 
-        $children = array(Node::create('child2'));
-        $node->addChildren($children);
-        $this->assertEquals(count($node->getChildren()), 2);
+        $node->addChildren([new Node('child2')]);
+        $this->assertCount(2, $node->getChildren());
 
         $node->clearChildren();
-        $this->assertEquals(count($node->getChildren()), 0);
+        $this->assertCount(0, $node->getChildren());
 
         $node->setUseCdata(false);
-        $this->assertEquals($node->getUseCdata(), false);
+        $this->assertFalse($node->getUseCdata());
 
         $node->setUseShortTag(true);
-        $this->assertEquals($node->getUseShortTag(), true);
+        $this->assertTrue($node->getUseShortTag());
 
-        $node->setOptions(array());
-        $this->assertEquals($node->getOptions(), array(
+        $node->setOptions([]);
+        $this->assertSame($node->getOptions(), [
             'value' => '',
-            'attributes' => array(),
+            'attributes' => [],
             'parent' => null,
             'use_cdata' => false,
             'use_short_tag' => true,
-        ));
+        ]);
 
         $child = Node::create('child')->setValue('child-value');
         $node->addChild($child);
         foreach ($node as $nodeChild) {
-            $this->assertEquals($child, $nodeChild);
-            $this->assertEquals($child->key(), 0);
+            $this->assertSame($child, $nodeChild);
         }
-        $this->assertEquals(isset($node->child), true);
+        $this->assertTrue(isset($node->child));
 
-        $node->second = Node::create('second');
-        $this->assertEquals(count($node->getChildren()), 2);
+        $node->second = new Node('second');
+        $this->assertCount(2, $node->getChildren());
         unset($node->second);
-        $this->assertEquals($node->getChildren(), array($child));
+        $this->assertSame($node->getChildren(), [$child]);
     }
 }

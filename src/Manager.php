@@ -1,12 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
+/**
+ * This file is part of the dborsatto/object-xml package.
+ *
+ * @license   MIT
+ */
+
 namespace DBorsatto\ObjectXml;
 
 /**
  * Manager class
- * This class works as a manager for the ObjextXml library.
- *
- * @author Davide Borsatto <davide.borsatto@gmail.com>
+ * This class works as a manager for the ObjectXml library.
  */
 class Manager
 {
@@ -22,9 +28,9 @@ class Manager
      *
      * @param string $source The XML string
      *
-     * @return Node The Node representation of the given XML
+     * @return Node
      */
-    public function parseString($source)
+    public function parseString(string $source): Node
     {
         return $this->xmlToObject($source);
     }
@@ -38,31 +44,31 @@ class Manager
      */
     public function parseFile($path)
     {
-        if (!is_file($path)) {
+        if (!\is_file($path)) {
             throw new \InvalidArgumentException('The given path is not a valid file');
         }
 
-        return $this->parseString(file_get_contents($path));
+        return $this->parseString(\file_get_contents($path));
     }
 
     /**
-     * Converts an XML string into an object struct.
+     * Converts an XML string into an object structure.
      *
      * @param string $data The XML string
      *
-     * @return esXml The parsed XML
+     * @return Node The parsed XML
      */
-    private function xmlToObject($data)
+    private function xmlToObject(string $data): Node
     {
         $root = new Node();
         $root->setName('root');
         $actualLevel = 1;
         $actualNode = $root;
-        $stack = array();
+        $stack = [];
         $stack[1] = $root;
 
         foreach ($this->parseIntoStruct($data) as $element) {
-            if ($element['type'] === 'close') {
+            if ('close' === $element['type']) {
                 continue;
             }
 
@@ -97,18 +103,18 @@ class Manager
      *
      * @return array The parsed XML
      */
-    private function parseIntoStruct($data)
+    private function parseIntoStruct(string $data): array
     {
-        $parser = xml_parser_create('');
-        xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, 'UTF-8');
-        xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-        xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
-        xml_parse_into_struct($parser, $data, $xmlValues);
+        $parser = \xml_parser_create('');
+        \xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, 'UTF-8');
+        \xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+        \xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
+        \xml_parse_into_struct($parser, $data, $xmlValues);
 
-        if ($error = xml_get_error_code($parser) !== XML_ERROR_NONE) {
-            throw new \RuntimeException('The XML parser return an error with message: '.xml_error_string($error));
+        if ($error = XML_ERROR_NONE !== \xml_get_error_code($parser)) {
+            throw new \RuntimeException('The XML parser return an error with message: '.\xml_error_string($error));
         }
-        xml_parser_free($parser);
+        \xml_parser_free($parser);
 
         return $xmlValues;
     }
@@ -120,7 +126,7 @@ class Manager
      *
      * @return Manager
      */
-    public function setIndentationSpaces($indentationSpaces)
+    public function setIndentationSpaces(int $indentationSpaces): self
     {
         $this->indentationSpaces = $indentationSpaces;
 
@@ -132,20 +138,20 @@ class Manager
      *
      * @return int
      */
-    public function getIndentationSpaces()
+    public function getIndentationSpaces(): int
     {
         return $this->indentationSpaces;
     }
 
     /**
-     * Returns the XML rappresentation of the given Node with its children.
+     * Returns the XML representation of the given Node with its children.
      *
      * @param Node $node       The Node to be converted to string
      * @param bool $forceCdata Whether the XML content will be enclosed within CDATA tags
      *
      * @return string The XML representation
      */
-    public function toString(Node $node, $forceCdata = false)
+    public function toString(Node $node, bool $forceCdata = false): string
     {
         $document = new \DOMDocument('1.0', 'UTF-8');
         $root = $this->createDomStructure($document, $node, $forceCdata);
@@ -162,9 +168,9 @@ class Manager
      * @param Node         $node       The Node to be converted to string
      * @param bool         $forceCdata Whether the XML content will be enclosed within CDATA tags
      *
-     * @return \DOMElement The DOM rappresentation of the Node
+     * @return \DOMElement The DOM representation of the Node
      */
-    private function createDomStructure(\DOMDocument $document, Node $node, $forceCdata)
+    private function createDomStructure(\DOMDocument $document, Node $node, bool $forceCdata): \DOMElement
     {
         if (!$node->getName()) {
             throw new \RuntimeException('Can not create an XML representation of a Node without a name');
@@ -212,12 +218,12 @@ class Manager
      *
      * @return string
      */
-    public function toTree(Node $node, $currentIndentation = 0)
+    public function toTree(Node $node, int $currentIndentation = 0): string
     {
-        if ($currentIndentation === 0) {
+        if (0 === $currentIndentation) {
             $tree = $node->getName()."\n";
         } else {
-            $tree = str_pad('', $currentIndentation, '-', STR_PAD_LEFT).' '.$node->getName()."\n";
+            $tree = \str_pad('', $currentIndentation, '-', STR_PAD_LEFT).' '.$node->getName()."\n";
         }
 
         foreach ($node->getChildren() as $child) {
@@ -234,15 +240,15 @@ class Manager
      *
      * @return array
      */
-    public function toArray(Node $node)
+    public function toArray(Node $node): array
     {
-        return array(
+        return [
             'name' => $node->getName(),
             'value' => $node->getValue(),
             'attributes' => $node->getAttributes(),
-            'children' => array_map(function (Node $child) {
+            'children' => \array_map(function (Node $child): array {
                 return $this->toArray($child);
             }, $node->getChildren()),
-        );
+        ];
     }
 }
